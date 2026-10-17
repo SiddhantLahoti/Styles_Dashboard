@@ -13,7 +13,7 @@ echo Launching dashboard interface...
 start "" cmd /c "timeout /t 1 >nul && start http://127.0.0.1:8000"
 
 :: Start Uvicorn
-".\python-embed\python.exe" app.py
+".\python-embed\python.exe" -m uvicorn app:app --host 0.0.0.0 --port 8000
 
 echo.
 echo [System Terminated]

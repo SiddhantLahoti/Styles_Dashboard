@@ -9,6 +9,9 @@ from filters import get_unique_filter_options, apply_filters_and_paginate
 from image_service import index_image_directories, find_image_for_style, get_cropped_image_bytes, generate_shortlist_excel , generate_catalogue_excel
 import threading
 from contextlib import asynccontextmanager
+import uuid
+import threading
+
 
 sync_status = {
     "is_ready": False,
@@ -216,7 +219,89 @@ def api_export_catalogue(payload: ExportPayload):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers=headers
     )
+# In-memory storage for export jobs
+export_jobs = {}
 
+def process_export_job(job_id: str, export_type: str, items: List[dict], per_row: int):
+    try:
+        def update_progress(current, total):
+            if job_id in export_jobs:
+                percent = int((current / total) * 100) if total > 0 else 0
+                export_jobs[job_id]["current"] = current
+                export_jobs[job_id]["total"] = total
+                export_jobs[job_id]["percent"] = percent
+
+        if export_type == "catalogue":
+            stream = generate_catalogue_excel(items, per_row=per_row, progress_cb=update_progress)
+            filename = f"Catalogue_{per_row}_per_row.xlsx"
+        else:
+            stream = generate_shortlist_excel(items, progress_cb=update_progress)
+            filename = "Shortlisted_Products.xlsx"
+
+        export_jobs[job_id]["data"] = stream.getvalue()
+        export_jobs[job_id]["filename"] = filename
+        export_jobs[job_id]["status"] = "completed"
+        export_jobs[job_id]["percent"] = 100
+    except Exception as e:
+        export_jobs[job_id]["status"] = "failed"
+        export_jobs[job_id]["error"] = str(e)
+
+
+@app.post("/api/export-job/start")
+def api_start_export_job(payload: ExportPayload, export_type: str = Query("row")):
+    if not payload.items:
+        raise HTTPException(status_code=400, detail="No items to export")
+
+    job_id = str(uuid.uuid4())
+    per_row = payload.per_row if payload.per_row in [3, 4, 5] else 4
+
+    export_jobs[job_id] = {
+        "status": "processing",
+        "current": 0,
+        "total": len(payload.items),
+        "percent": 0,
+        "data": None,
+        "filename": ""
+    }
+
+    thread = threading.Thread(
+        target=process_export_job,
+        args=(job_id, export_type, payload.items, per_row),
+        daemon=True
+    )
+    thread.start()
+
+    return {"job_id": job_id, "total": len(payload.items)}
+
+
+@app.get("/api/export-job/{job_id}/progress")
+def api_get_export_progress(job_id: str):
+    if job_id not in export_jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    job = export_jobs[job_id]
+    return {
+        "status": job["status"],
+        "current": job["current"],
+        "total": job["total"],
+        "percent": job["percent"],
+        "error": job.get("error")
+    }
+
+
+@app.get("/api/export-job/{job_id}/download")
+def api_download_export_file(job_id: str):
+    if job_id not in export_jobs or export_jobs[job_id]["status"] != "completed":
+        raise HTTPException(status_code=404, detail="File not ready")
+
+    job = export_jobs.pop(job_id)  # download and free memory
+    headers = {'Content-Disposition': f'attachment; filename="{job["filename"]}"'}
+    return Response(
+        content=job["data"],
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers
+    )
+    
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)

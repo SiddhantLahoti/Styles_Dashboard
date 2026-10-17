@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Product Catalog & Shortlist</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+<script src="/static/tailwind.js"></script></head>
 <body class="bg-slate-50 text-slate-900 font-sans min-h-screen flex flex-col">
 <!-- Full-Screen Initial Loading Overlay -->
 <div id="initialLoader" class="fixed inset-0 z-50 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center transition-opacity duration-500">
@@ -232,6 +231,32 @@
     </main>
 
   </div>
+
+  <!-- Live Download Progress Modal -->
+<div id="exportProgressModal" class="fixed inset-0 z-50 hidden bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold animate-pulse">
+        📥
+      </div>
+      <div>
+        <h3 id="exportProgressTitle" class="text-sm font-bold text-slate-900">Preparing Excel Download...</h3>
+        <p class="text-xs text-slate-500">Embedding images and formatting cells</p>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+      <div id="exportProgressBar" class="bg-indigo-600 h-3 rounded-full transition-all duration-200" style="width: 0%;"></div>
+    </div>
+
+    <!-- Live Counter Numbers -->
+    <div class="flex justify-between items-center text-xs text-slate-600 font-medium">
+      <span>Processing item <b id="exportProgressCurrent" class="text-indigo-600">0</b> of <b id="exportProgressTotal">0</b></span>
+      <span id="exportProgressPercent" class="font-bold text-indigo-700">0%</span>
+    </div>
+  </div>
+</div>
     <!-- Custom Confirmation Modal for Clear All -->
 <div id="clearConfirmModal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
   <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 text-center space-y-4">
@@ -594,40 +619,57 @@
 
     // Shortlist Collection View
     function renderShortlistTab() {
-      const items = Array.from(shortlistedMap.values());
-      renderProducts(items);
+  const allItems = Array.from(shortlistedMap.values());
+  const pageSize = parseInt(getVal('pageSize') || 24, 10);
+  const totalItems = allItems.length;
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
 
-      document.getElementById('resultsCount').textContent = `Shortlisted Collection: ${items.length} items`;
-      document.getElementById('paginationFooter').classList.add('hidden');
-    }
+  // Keep page within valid bounds
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+
+  // Slice only the items for the current page
+  const startIdx = (currentPage - 1) * pageSize;
+  const pageItems = allItems.slice(startIdx, startIdx + pageSize);
+
+  renderProducts(pageItems);
+  updatePagination(currentPage, totalPages, totalItems);
+  document.getElementById('resultsCount').textContent = `Shortlisted Collection: Showing ${totalItems.toLocaleString()} total designs`;
+}
 
     // Tabs switching
     document.getElementById('tabExploreBtn').onclick = () => {
-      activeTab = 'explore';
-      document.getElementById('tabExploreBtn').className = "px-4 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-700 shadow-sm transition-all";
-      document.getElementById('tabShortlistBtn').className = "px-4 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5";
-      document.getElementById('filterSidebar').classList.remove('hidden');
-      document.getElementById('mainContent').className = "md:col-span-3 space-y-4";
-      document.getElementById('exportShortlistBtn').classList.add('hidden');
-      document.getElementById('clearShortlistBtn').classList.add('hidden');
-      document.getElementById('pageSizeWrapper').classList.remove('hidden');
-      document.getElementById('paginationFooter').classList.remove('hidden');
-      document.getElementById('catalogueExportGroup').classList.add('hidden');
-      fetchProducts();
-    };
+  activeTab = 'explore';
+  currentPage = 1; // Reset to page 1
+  document.getElementById('tabExploreBtn').className = "px-4 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-700 shadow-sm transition-all";
+  document.getElementById('tabShortlistBtn').className = "px-4 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all flex items-center gap-1.5";
+  document.getElementById('filterSidebar').classList.remove('hidden');
+  document.getElementById('mainContent').className = "md:col-span-3 space-y-4";
+  document.getElementById('exportShortlistBtn').classList.add('hidden');
+  document.getElementById('catalogueExportGroup').classList.add('hidden');
+  document.getElementById('clearShortlistBtn').classList.add('hidden');
+  document.getElementById('pageSizeWrapper').classList.remove('hidden');
+  document.getElementById('paginationFooter').classList.remove('hidden');
+  fetchProducts();
+};
 
     document.getElementById('tabShortlistBtn').onclick = () => {
-      activeTab = 'shortlist';
-      document.getElementById('tabShortlistBtn').className = "px-4 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-700 shadow-sm transition-all flex items-center gap-1.5";
-      document.getElementById('tabExploreBtn').className = "px-4 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all";
-      document.getElementById('filterSidebar').classList.add('hidden');
-      document.getElementById('mainContent').className = "md:col-span-4 space-y-4";
-      document.getElementById('exportShortlistBtn').classList.remove('hidden');
-      document.getElementById('clearShortlistBtn').classList.remove('hidden');
-      document.getElementById('pageSizeWrapper').classList.add('hidden');
-      document.getElementById('catalogueExportGroup').classList.remove('hidden');
-      renderShortlistTab();
-    };
+  activeTab = 'shortlist';
+  currentPage = 1; // Reset to page 1
+  document.getElementById('tabShortlistBtn').className = "px-4 py-1.5 text-xs font-bold rounded-lg bg-white text-indigo-700 shadow-sm transition-all flex items-center gap-1.5";
+  document.getElementById('tabExploreBtn').className = "px-4 py-1.5 text-xs font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition-all";
+  document.getElementById('filterSidebar').classList.add('hidden');
+  document.getElementById('mainContent').className = "md:col-span-4 space-y-4";
+  document.getElementById('exportShortlistBtn').classList.remove('hidden');
+  document.getElementById('catalogueExportGroup').classList.remove('hidden');
+  document.getElementById('clearShortlistBtn').classList.remove('hidden');
+  
+  // KEEP VISIBLE FOR SHORTLIST
+  document.getElementById('pageSizeWrapper').classList.remove('hidden');
+  document.getElementById('paginationFooter').classList.remove('hidden');
+  
+  renderShortlistTab();
+};
 
     // --- NEW PROFESSIONAL MODAL HANDLER ---
     const clearModal = document.getElementById('clearConfirmModal');
@@ -652,82 +694,88 @@ clearModal.addEventListener('click', (e) => {
   if (e.target === clearModal) clearModal.classList.add('hidden');
 });
 
-    // Download Shortlist to Excel with Images (Col M)
-    document.getElementById('exportShortlistBtn').onclick = async () => {
-      const items = Array.from(shortlistedMap.values());
-      if (items.length === 0) {
-        alert("Your shortlist is empty!");
-        return;
-      }
+    // --- Reusable Live Progress Exporter ---
+async function runExportWithLiveProgress(exportType, perRow = 4) {
+  const items = Array.from(shortlistedMap.values());
+  if (items.length === 0) {
+    alert("Your shortlist is empty!");
+    return;
+  }
 
-      const btn = document.getElementById('exportShortlistBtn');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '⏳ Generating Excel with Images...';
-      btn.disabled = true;
+  const modal = document.getElementById('exportProgressModal');
+  const title = document.getElementById('exportProgressTitle');
+  const bar = document.getElementById('exportProgressBar');
+  const curLabel = document.getElementById('exportProgressCurrent');
+  const totLabel = document.getElementById('exportProgressTotal');
+  const pctLabel = document.getElementById('exportProgressPercent');
 
+  // Reset modal state
+  title.textContent = exportType === 'catalogue' ? 'Generating Catalogue Grid...' : 'Generating Row-Wise Excel...';
+  bar.style.width = '0%';
+  curLabel.textContent = '0';
+  totLabel.textContent = items.length;
+  pctLabel.textContent = '0%';
+  modal.classList.remove('hidden');
+
+  try {
+    // 1. Start the export job on the server
+    const startRes = await fetch(`/api/export-job/start?export_type=${exportType}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: items, per_row: perRow })
+    });
+    const { job_id } = await startRes.json();
+
+    // 2. Poll progress every 350ms
+    const pollInterval = setInterval(async () => {
       try {
-        const response = await fetch('/api/export-shortlist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ items: items })
-        });
+        const progRes = await fetch(`/api/export-job/${job_id}/progress`);
+        const prog = await progRes.json();
 
-        if (!response.ok) throw new Error("Export failed on server.");
+        if (prog.status === 'processing') {
+          bar.style.width = `${prog.percent}%`;
+          curLabel.textContent = prog.current;
+          totLabel.textContent = prog.total;
+          pctLabel.textContent = `${prog.percent}%`;
+        } else if (prog.status === 'completed') {
+          clearInterval(pollInterval);
+          bar.style.width = '100%';
+          pctLabel.textContent = '100%';
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Shortlist_${new Date().toISOString().slice(0,10)}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-      } catch (err) {
-        alert("Error generating Excel file: " + err);
-      } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+          // 3. Trigger file download
+          window.location.href = `/api/export-job/${job_id}/download`;
+
+          // Brief delay so user sees 100% complete, then close modal
+          setTimeout(() => {
+            modal.classList.add('hidden');
+          }, 600);
+        } else if (prog.status === 'failed') {
+          clearInterval(pollInterval);
+          modal.classList.add('hidden');
+          alert("Export failed: " + prog.error);
+        }
+      } catch (pollErr) {
+        clearInterval(pollInterval);
+        modal.classList.add('hidden');
+        alert("Error tracking export progress: " + pollErr);
       }
-    };
+    }, 350);
 
-    // Catalogue Export Handler
-    document.getElementById('exportCatalogueBtn').onclick = async () => {
-    const items = Array.from(shortlistedMap.values());
-    if (items.length === 0) {
-        alert("Your shortlist is empty!");
-        return;
-    }
+  } catch (err) {
+    modal.classList.add('hidden');
+    alert("Could not start export: " + err);
+  }
+}
 
-    const perRow = parseInt(document.getElementById('cataloguePerRow').value, 10) || 4;
-    const btn = document.getElementById('exportCatalogueBtn');
-    const origText = btn.innerHTML;
-    btn.innerHTML = '⏳ Generating Catalogue...';
-    btn.disabled = true;
+// Wire the two buttons to the progress runner
+document.getElementById('exportShortlistBtn').onclick = () => {
+  runExportWithLiveProgress('row');
+};
 
-    try {
-        const response = await fetch('/api/export-catalogue', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items: items, per_row: perRow })
-        });
-
-        if (!response.ok) throw new Error("Server failed to generate catalogue.");
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Catalogue_${perRow}_per_row_${new Date().toISOString().slice(0, 10)}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-    } catch (err) {
-        alert("Error generating Catalogue Excel: " + err);
-    } finally {
-        btn.innerHTML = origText;
-        btn.disabled = false;
-    }
-    };
+document.getElementById('exportCatalogueBtn').onclick = () => {
+  const perRow = parseInt(document.getElementById('cataloguePerRow').value, 10) || 4;
+  runExportWithLiveProgress('catalogue', perRow);
+};
 
     function updatePagination(page, totalPages, totalItems) {
       currentPage = page;
@@ -769,16 +817,24 @@ clearModal.addEventListener('click', (e) => {
     }
 
     document.getElementById('prevPageBtn').onclick = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        fetchProducts();
-      }
-    };
+  if (currentPage > 1) {
+    currentPage--;
+    if (activeTab === 'shortlist') renderShortlistTab();
+    else fetchProducts();
+  }
+};
 
-    document.getElementById('nextPageBtn').onclick = () => {
-      currentPage++;
-      fetchProducts();
-    };
+document.getElementById('nextPageBtn').onclick = () => {
+  currentPage++;
+  if (activeTab === 'shortlist') renderShortlistTab();
+  else fetchProducts();
+};
+
+document.getElementById('pageSize').onchange = () => {
+  currentPage = 1;
+  if (activeTab === 'shortlist') renderShortlistTab();
+  else fetchProducts();
+};
 
     document.getElementById('resetBtn').onclick = () => {
       Object.keys(selectedFilters).forEach(k => selectedFilters[k].clear());

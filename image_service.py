@@ -177,7 +177,7 @@ def get_cropped_image_bytes(image_path: Path, full_resolution: bool = False, tol
         return data
 
 
-def generate_shortlist_excel(items: List[dict]) -> io.BytesIO:
+def generate_shortlist_excel(items: List[dict], progress_cb=None) -> io.BytesIO:
     """
     Creates an Excel spreadsheet containing all columns (A-L) + Column M with the inserted image.
     """
@@ -195,8 +195,10 @@ def generate_shortlist_excel(items: List[dict]) -> io.BytesIO:
     ws.column_dimensions["M"].width = 24
     row_height = 80
     max_w, max_h = 140, 100
-
+    total = len(items)
     for idx, item in enumerate(items, start=2):
+        if progress_cb:
+            progress_cb(idx - 1, total)
         ws.row_dimensions[idx].height = row_height
         ws.append([
             item.get("drcd", ""),
@@ -250,7 +252,7 @@ def generate_shortlist_excel(items: List[dict]) -> io.BytesIO:
     out.seek(0)
     return out
 
-def generate_catalogue_excel(items: List[dict], per_row: int = 4) -> io.BytesIO:
+def generate_catalogue_excel(items: List[dict], per_row: int = 4, progress_cb=None) -> io.BytesIO:
     """
     Generates an Excel workbook formatted in Catalogue Card Grid view matching TEST.xlsx.
     per_row can be 3, 4, or 5.
@@ -301,8 +303,10 @@ def generate_catalogue_excel(items: List[dict], per_row: int = 4) -> io.BytesIO:
     start_row = 4
     image_rows_count = 9
     block_total_rows = 11  # 9 rows image + 1 row Style # + 1 row Dia Wt.
-
+    total = len(items)
     for idx, item in enumerate(items):
+        if progress_cb:
+            progress_cb(idx + 1, total)
         grid_row = idx // per_row
         grid_col = idx % per_row
 
