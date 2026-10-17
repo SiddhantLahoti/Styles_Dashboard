@@ -816,25 +816,33 @@ document.getElementById('exportCatalogueBtn').onclick = () => {
       };
     }
 
+    // Smoothly scroll to the absolute top of the page
+    function scrollToGridTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     document.getElementById('prevPageBtn').onclick = () => {
-  if (currentPage > 1) {
-    currentPage--;
-    if (activeTab === 'shortlist') renderShortlistTab();
-    else fetchProducts();
-  }
-};
+      if (currentPage > 1) {
+        currentPage--;
+        scrollToGridTop();
+        if (activeTab === 'shortlist') renderShortlistTab();
+        else fetchProducts();
+      }
+    };
 
-document.getElementById('nextPageBtn').onclick = () => {
-  currentPage++;
-  if (activeTab === 'shortlist') renderShortlistTab();
-  else fetchProducts();
-};
+    document.getElementById('nextPageBtn').onclick = () => {
+      currentPage++;
+      scrollToGridTop();
+      if (activeTab === 'shortlist') renderShortlistTab();
+      else fetchProducts();
+    };
 
-document.getElementById('pageSize').onchange = () => {
-  currentPage = 1;
-  if (activeTab === 'shortlist') renderShortlistTab();
-  else fetchProducts();
-};
+    document.getElementById('pageSize').onchange = () => {
+      currentPage = 1;
+      scrollToGridTop();
+      if (activeTab === 'shortlist') renderShortlistTab();
+      else fetchProducts();
+    };
 
     document.getElementById('resetBtn').onclick = () => {
       Object.keys(selectedFilters).forEach(k => selectedFilters[k].clear());
