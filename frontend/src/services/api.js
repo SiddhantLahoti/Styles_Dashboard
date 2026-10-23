@@ -9,7 +9,7 @@ function buildQueryParams(filters, page = 1, pageSize = 24, search = '') {
   // Range & single inputs
   const singleFields = [
     'start_date', 'end_date', 'min_total_wt', 'max_total_wt',
-    'ln1', 'ln2', 'min_rm_wt', 'max_rm_wt'
+    'ln1', 'ln2', 'min_rm_wt', 'max_rm_wt', 'lab_grown'
   ];
 
   singleFields.forEach((field) => {
@@ -30,6 +30,7 @@ function buildQueryParams(filters, page = 1, pageSize = 24, search = '') {
     { key: 'color', queryKey: 'color' },
     { key: 'set_cd', queryKey: 'set_cd' },
     { key: 'concept_by', queryKey: 'concept_by' },
+    { key: 'creative_by', queryKey: 'creative_by' },
     { key: 'weight_by', queryKey: 'weight_by' },
     { key: 'rm_category', queryKey: 'rm_category' },
     { key: 'rm_subcategory', queryKey: 'rm_subcategory' },

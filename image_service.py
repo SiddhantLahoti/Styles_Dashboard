@@ -189,10 +189,11 @@ def generate_shortlist_excel(items: List[dict], progress_cb=None) -> io.BytesIO:
     ws.views.sheetView[0].showGridLines = True
 
     headers = [
-        "Style #", "Image", "Created Date", "Category", "Sales Cat 1", "Sales Cat 2",
-        "Set Code", "Brand", "Customer", "Tone", "Metal", "Total Wt (g)",
-        "Concept By", "Weight By", "Stone Carats (CT)", "Stone Shapes",
-        "Stone Breakdown"
+    "Style #", "Image", "Created Date", "Category", "Sales Cat 1", "Sales Cat 2",
+    "Set Code", "Brand", "Customer", "Tone", "Metal", "Total Wt (g)",
+    "Concept By 1", "Concept By 2", "Creative By 1", "Creative By 2",
+    "Weight By 1", "Weight By 2", "Stone Carats (CT)", "Stone Shapes",
+    "Stone Breakdown"
     ]
     ws.append(headers)
 
@@ -261,22 +262,26 @@ def generate_shortlist_excel(items: List[dict], progress_cb=None) -> io.BytesIO:
             str(item.get("Tone", "-")),
             metal_str,
             float(item.get("Totalwt", 0) or 0),
-            str(item.get("ConBy", "-")),
-            str(item.get("WetBy", "-")),
+            str(item.get("ConByDesc", "-")),
+            str(item.get("ConByDesc1", "-")),
+            str(item.get("CreatByDesc", "-")),
+            str(item.get("CreatByDesc1", "-")),
+            str(item.get("WetByDesc", "-")),
+            str(item.get("WetByDesc1", "-")),
             float(stone_wt or 0),
             shapes_str,
             breakdown_text
         ])
 
         # Align text cells nicely, enabling text wrap for the stone breakdown
-        for c_idx in range(1, 18):
+        for c_idx in range(1, 22):
             if c_idx == 2:
-                continue  # Skip image column
+                continue
             cell = ws.cell(idx, c_idx)
-            if c_idx == 17:
+            if c_idx == 21:
                 cell.alignment = Alignment(wrap_text=True, vertical="center")
             else:
-                cell.alignment = Alignment(vertical="center", horizontal="center" if c_idx in [1, 3, 7, 11, 12, 15] else "left")
+                cell.alignment = Alignment(vertical="center", horizontal="center" if c_idx in [1, 3, 7, 11, 12, 19] else "left")
 
         # Find and attach image in Column P (16th column)
         img_path = find_image_for_style(style_code)

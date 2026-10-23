@@ -22,6 +22,7 @@ export default function ProductCard({
   onToggleShortlist,
   onOpenZoom,
   onOpenRmDetails,
+  onOpenDesigners
 }) {
   const styleCode = item.Dmcd || item.drcd || '-';
   const [imgSrc, setImgSrc] = useState(getProductImageUrl(styleCode));
@@ -129,7 +130,7 @@ export default function ProductCard({
             )}
             {item.Brand && (
               <span className="bg-slate-50 px-1.5 py-0.5 rounded border border-slate-200">
-                Brand: {item.Brand}
+                Collection: {item.Brand}
               </span>
             )}
             {item.Tone && (
@@ -155,14 +156,6 @@ export default function ProductCard({
             <span className="text-slate-400">Total Wt:</span>{' '}
             <b className="text-slate-700 font-semibold">{formatNumber(item.Totalwt)}g</b>
           </div>
-          <div className="truncate" title={`Concept By: ${item.ConBy || '-'}`}>
-            <span className="text-slate-400">Con By:</span>{' '}
-            <b className="text-slate-700 font-medium">{item.ConBy || '-'}</b>
-          </div>
-          <div className="truncate" title={`Weight By: ${item.WetBy || '-'}`}>
-            <span className="text-slate-400">Wet By:</span>{' '}
-            <b className="text-slate-700 font-medium">{item.WetBy || '-'}</b>
-          </div>
         </div>
 
         {/* Raw Material Stones Breakdown Trigger */}
@@ -175,15 +168,25 @@ export default function ProductCard({
               Shapes: <b className="text-slate-700">{stoneShapes}</b>
             </span>
           </div>
-          <button
-            type="button"
-            onClick={() => onOpenRmDetails(styleCode)}
-            className="w-full py-1 text-[11px] font-semibold text-indigo-600 bg-indigo-50/70 hover:bg-indigo-100 rounded-md transition-colors flex items-center justify-center gap-1"
-          >
-            📋 View Stones ({item.rm_stones_qty || 0}) ▾
-          </button>
-        </div>
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+        <button 
+          type="button" 
+          onClick={() => onOpenRmDetails(styleCode)} 
+          className="w-full py-1 text-[11px] font-semibold text-indigo-600 bg-indigo-50/70 hover:bg-indigo-100 rounded-md transition-colors flex items-center justify-center gap-1"
+        >
+          💎 Stones ({item.rm_stones_qty || 0})
+        </button>
+
+        <button 
+          type="button" 
+          onClick={() => onOpenDesigners(item)} 
+          className="w-full py-1 text-[11px] font-semibold text-purple-600 bg-purple-50/70 hover:bg-purple-100 rounded-md transition-colors flex items-center justify-center gap-1"
+        >
+          👤 Designers ▾
+        </button>
       </div>
+      </div>
+    </div>
     </div>
   );
 }

@@ -4,8 +4,8 @@ from typing import Optional, List
 from config import (
     COL_STYLE, COL_CTG_DESC, COL_SAL_CTG1, COL_SAL_CTG2,
     COL_BRAND, COL_TONE, COL_CUSTOMER, COL_DATE,
-    COL_METAL, COL_COLOR, COL_TOTAL_WT, COL_CONCEPT_BY, COL_WEIGHT_BY,
-    COL_RM_LN1, COL_RM_LN2, COL_RM_WT, COL_RM_CTG, COL_RM_SUBCTG ,COL_SET_CD
+    COL_METAL, COL_COLOR, COL_TOTAL_WT, 
+    COL_RM_LN1, COL_RM_LN2, COL_RM_WT, COL_RM_CTG, COL_RM_SUBCTG ,COL_SET_CD ,COL_CON_BY_DESC, COL_CON_BY_DESC1, COL_CREAT_BY_DESC, COL_CREAT_BY_DESC1, COL_WET_BY_DESC, COL_WET_BY_DESC1
 )
 import data_loader
 from data_loader import get_filter_options
@@ -17,6 +17,7 @@ def get_unique_filter_options(df: pd.DataFrame = None) -> dict:
 def apply_filters_and_paginate(
     df: pd.DataFrame,
     search_query: Optional[str] = None,
+    lab_grown: Optional[str] = None,
     # File A Multi-select Dropdown Filters
     categories: Optional[List[str]] = None,
     sales_cat1: Optional[List[str]] = None,
@@ -28,6 +29,7 @@ def apply_filters_and_paginate(
     colors: Optional[List[str]] = None,
     set_codes: Optional[List[str]] = None,
     concept_designers: Optional[List[str]] = None,
+    creative_designers: Optional[List[str]] = None,
     weight_designers: Optional[List[str]] = None,
     # File A Range Filters
     start_date: Optional[str] = None,
@@ -79,10 +81,25 @@ def apply_filters_and_paginate(
     if set_codes:
         filtered_df = filtered_df[filtered_df[COL_SET_CD].isin(set_codes)]
     if concept_designers:
-        filtered_df = filtered_df[filtered_df[COL_CONCEPT_BY].isin(concept_designers)]
+        filtered_df = filtered_df[
+            filtered_df[COL_CON_BY_DESC].isin(concept_designers) | 
+            filtered_df[COL_CON_BY_DESC1].isin(concept_designers)
+        ]
+    if creative_designers:
+        filtered_df = filtered_df[
+            filtered_df[COL_CREAT_BY_DESC].isin(creative_designers) | 
+            filtered_df[COL_CREAT_BY_DESC1].isin(creative_designers)
+        ]
     if weight_designers:
-        filtered_df = filtered_df[filtered_df[COL_WEIGHT_BY].isin(weight_designers)]
-
+        filtered_df = filtered_df[
+            filtered_df[COL_WET_BY_DESC].isin(weight_designers) | 
+            filtered_df[COL_WET_BY_DESC1].isin(weight_designers)
+        ]
+    # Lab Grown Filter (Styles starting with 'L-')
+    if lab_grown == "lab_grown":
+        filtered_df = filtered_df[filtered_df[COL_STYLE].str.upper().str.startswith("L-")]
+    elif lab_grown == "natural":
+        filtered_df = filtered_df[~filtered_df[COL_STYLE].str.upper().str.startswith("L-")]
     # 3. File A Date & Total Weight Range Filters
     if start_date:
         filtered_df = filtered_df[filtered_df[COL_DATE] >= pd.to_datetime(start_date)]

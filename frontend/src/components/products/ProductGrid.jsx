@@ -16,6 +16,7 @@ export default function ProductGrid({
   onToggleShortlist,
   onOpenZoom,
   onOpenRmDetails,
+  onOpenDesigners,
   onExportRowWise,
   onExportCatalogue,
   onOpenClearConfirm,
@@ -112,6 +113,7 @@ export default function ProductGrid({
                 onToggleShortlist={onToggleShortlist}
                 onOpenZoom={onOpenZoom}
                 onOpenRmDetails={onOpenRmDetails}
+                onOpenDesigners={onOpenDesigners}  
               />
             );
           })}

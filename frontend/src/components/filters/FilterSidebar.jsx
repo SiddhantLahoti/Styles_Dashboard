@@ -32,6 +32,36 @@ export default function FilterSidebar({
         <span>{shortlistAllBtnText || '⭐ Shortlist All Filtered Results'}</span>
       </button>
 
+      {/* Lab Grown / Diamond Origin Filter */}
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 space-y-1.5">
+        <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wide">
+          Diamond Origin
+        </label>
+        <div className="grid grid-cols-3 gap-1 text-xs">
+          {[
+            { label: 'All', value: '' },
+            { label: 'Natural', value: 'natural' },
+            { label: 'Lab Grown', value: 'lab_grown' },
+          ].map((option) => {
+            const isSelected = (filters.lab_grown || '') === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => onFilterChange('lab_grown', option.value)}
+                className={`py-1 px-1.5 rounded text-center font-medium transition-all ${
+                  isSelected
+                    ? 'bg-indigo-600 text-white shadow-sm font-bold'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      
       {/* File A Filters */}
       <MultiSelectDropdown
         label="Category"
@@ -58,7 +88,7 @@ export default function FilterSidebar({
       />
 
       <MultiSelectDropdown
-        label="Brand"
+        label="Collection"
         defaultLabel="All Brands"
         options={options.brands || []}
         selected={filters.brand || []}
@@ -115,6 +145,14 @@ export default function FilterSidebar({
         options={options.concept_designers || []}
         selected={filters.concept_by || []}
         onChange={(val) => onFilterChange('concept_by', val)}
+      />
+
+      <MultiSelectDropdown
+        label="Creative Designer"
+        defaultLabel="All Creative By"
+        options={options.creative_designers || []}
+        selected={filters.creative_by || []}
+        onChange={(val) => onFilterChange('creative_by', val)}
       />
 
       <MultiSelectDropdown

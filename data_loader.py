@@ -7,7 +7,7 @@ from config import (
     EXCEL_FILE_A, EXCEL_FILE_B,
     COL_STYLE, COL_CTG_DESC, COL_SAL_CTG1, COL_SAL_CTG2,
     COL_BRAND, COL_TONE, COL_CUSTOMER, COL_DATE,
-    COL_METAL, COL_COLOR, COL_TOTAL_WT, COL_CONCEPT_BY, COL_WEIGHT_BY,
+    COL_METAL, COL_COLOR, COL_TOTAL_WT, COL_CON_BY_DESC, COL_CON_BY_DESC1, COL_CREAT_BY_DESC, COL_CREAT_BY_DESC1, COL_WET_BY_DESC, COL_WET_BY_DESC1,
     COL_RM_DSG, COL_RM_CTG, COL_RM_SUBCTG, COL_RM_LN1, COL_RM_LN2, COL_RM_QTY, COL_RM_WT ,COL_SET_CD
 )
 
@@ -82,7 +82,7 @@ def load_data(force_reload: bool = False):
                 usecols=[
                     COL_STYLE, COL_CTG_DESC, COL_SAL_CTG1, COL_SAL_CTG2,
                     COL_DATE, COL_METAL, COL_COLOR, COL_TOTAL_WT,
-                    COL_BRAND, COL_CUSTOMER, COL_CONCEPT_BY, COL_WEIGHT_BY, COL_TONE ,COL_SET_CD
+                    COL_BRAND, COL_CUSTOMER, COL_CON_BY_DESC, COL_CON_BY_DESC1, COL_CREAT_BY_DESC, COL_CREAT_BY_DESC1, COL_WET_BY_DESC, COL_WET_BY_DESC1, COL_TONE ,COL_SET_CD
                 ]
             )
             df_a[COL_STYLE] = df_a[COL_STYLE].astype(str).str.strip()
@@ -92,7 +92,7 @@ def load_data(force_reload: bool = False):
             str_cols = [
                 COL_CTG_DESC, COL_SAL_CTG1, COL_SAL_CTG2, COL_BRAND,
                 COL_TONE, COL_CUSTOMER, COL_METAL, COL_COLOR,
-                COL_CONCEPT_BY, COL_WEIGHT_BY,COL_SET_CD
+                COL_CON_BY_DESC, COL_CON_BY_DESC1, COL_CREAT_BY_DESC, COL_CREAT_BY_DESC1, COL_WET_BY_DESC, COL_WET_BY_DESC1,COL_SET_CD
             ]
             for col in str_cols:
                 df_a[col] = df_a[col].apply(clean_val)
@@ -163,8 +163,9 @@ def load_data(force_reload: bool = False):
                 "metals": get_sorted_uniques(df_a[COL_METAL]),
                 "colors": get_sorted_uniques(df_a[COL_COLOR]),
                 "set_codes": get_sorted_uniques(df_a[COL_SET_CD]),
-                "concept_designers": get_sorted_uniques(df_a[COL_CONCEPT_BY]),
-                "weight_designers": get_sorted_uniques(df_a[COL_WEIGHT_BY]),
+                "concept_designers": sorted([x for x in pd.concat([df_a[COL_CON_BY_DESC], df_a[COL_CON_BY_DESC1]]).unique() if x]),
+                "creative_designers": sorted([x for x in pd.concat([df_a[COL_CREAT_BY_DESC], df_a[COL_CREAT_BY_DESC1]]).unique() if x]),
+                "weight_designers": sorted([x for x in pd.concat([df_a[COL_WET_BY_DESC], df_a[COL_WET_BY_DESC1]]).unique() if x]),
                 "rm_categories": sorted([x for x in df_b[COL_RM_CTG].unique() if x]),
                 "rm_subcategories": sorted([x for x in df_b[COL_RM_SUBCTG].unique() if x]),
                 "ranges": {

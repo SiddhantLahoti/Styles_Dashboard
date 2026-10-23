@@ -7,6 +7,7 @@ import ImageZoomModal from './components/modals/ImageZoomModal';
 import StoneBreakdownModal from './components/modals/StoneBreakdownModal';
 import ExportProgressModal from './components/modals/ExportProgressModal';
 import ClearConfirmModal from './components/modals/ClearConfirmModal';
+import DesignerModal from './components/modals/DesignerModal';
 
 import {
   getFilterOptions,
@@ -19,6 +20,7 @@ import {
 } from './services/api';
 
 const initialFilters = {
+  lab_grown: '',
   category: [],
   sales_cat1: [],
   sales_cat2: [],
@@ -29,6 +31,7 @@ const initialFilters = {
   color: [],
   set_cd: [],
   concept_by: [],
+  creative_by:[],
   weight_by: [],
   start_date: '',
   end_date: '',
@@ -74,6 +77,8 @@ export default function App() {
     exportType: 'row',
     progress: { percent: 0, current: 0, total: 0 },
   });
+
+  const [designerItem, setDesignerItem] = useState(null);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -296,6 +301,7 @@ export default function App() {
           activeTab={activeTab}
           shortlistedMap={shortlistedMap}
           cataloguePerRow={cataloguePerRow}
+          onOpenDesigners={(item) => setDesignerItem(item)}
           setCataloguePerRow={setCataloguePerRow}
           onPageChange={(page) => {
             setCurrentPage(page);
@@ -328,6 +334,12 @@ export default function App() {
         isOpen={Boolean(rmCode)}
         styleCode={rmCode}
         onClose={() => setRmCode(null)}
+      />
+
+      <DesignerModal
+        isOpen={Boolean(designerItem)}
+        item={designerItem}
+        onClose={() => setDesignerItem(null)}
       />
 
       <ExportProgressModal
